@@ -1,6 +1,7 @@
 import Web3 from "web3";
 
-const web3 = new Web3('https://ropsten.infura.io/v3/f7420c75750649d7acc7606da994b128');
+const web3 = new Web3(`https://${process.env.INFURA_NETWORK}.infura.io/v3/${process.env.INFURA_PROJECT_ID}`);
+
 const WEI_UNIT = Number(1000000000000000000);
 
 const convertWeiToEth = (amountInWei) => {
@@ -75,13 +76,12 @@ export const sendEthTransaction = async ({ sender_address, sender_private_key, d
         return hash;
     })
     .on('transactionHash', (hash) => console.log({ hash }) )
-    .on('receipt', receipt => {
-        console.log({receipt});
-    })
     .on('confirmation', (confirmationNumber, receipt) => {
         console.log({confirmationNumber, receipt});
     })
-    .on('error', error => console.log(error))
+    .on('error', error => console.log(error));
+
+    return "Transaction in progress";
 }
 
 export const getEthTransaction = async (hash) => {
