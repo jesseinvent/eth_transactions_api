@@ -7,6 +7,16 @@ GET http://localhost:3000/get-balance/0xe779937098ca3ae789422db23b8d18818d76ee7b
 ### GET TRANSACTION COUNT
 GET http://localhost:3000/get-transaction-count/0xe779937098ca3ae789422db23b8d18818d76ee7b
 
+### GET GAS FEE
+POST http://localhost:3000/get-gas-limit
+Content-Type: application/json
+Accept: application/json
+
+{
+    "destination_address": "0xE779937098cA3ae789422db23B8D18818d76EE7B",
+    "value": "1"
+}
+
 ### SEND TRANSACTION
 POST http://localhost:3000/send-transaction
 Content-Type: application/json
@@ -17,5 +27,5 @@ Accept: application/json
     "value": "1"
 }
 
-### GET TRANSACTIONS
+### GET TRANSACTION
 GET http://localhost:3000/get-transaction/0x224affe4a3379df39c514fcc1c05454a43d4da1edca68bafc8ecfe03f53060c0

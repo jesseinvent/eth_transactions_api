@@ -1,24 +1,35 @@
 import Web3 from "web3";
+import configs from "../config/config.js";
 
-const web3 = new Web3(`https://${process.env.INFURA_NETWORK}.infura.io/v3/${process.env.INFURA_PROJECT_ID}`);
+const { ETHEREUM_NETWORK, INFURA_PROJECT_ID } = configs;
 
-const WEI_UNIT = Number(1000000000000000000);
+/*
+ *  Providers are Ethereum nodes that connects you to the Ethereum Network
+ */
+
+// INFURA WEBSOCKET NODE PROVIDER
+const wsProvider = new Web3.providers.WebsocketProvider(`wss://${ETHEREUM_NETWORK}.infura.io/ws/v3/${INFURA_PROJECT_ID}`);
+
+// INFURA WEBSCOKET HTTP PROVIDER
+const httpProvider = new Web3.providers.HttpProvider(`https://${ETHEREUM_NETWORK}.infura.io/v3/${INFURA_PROJECT_ID}`);
+
+const web3 = new Web3(wsProvider);
 
 const convertWeiToEth = (amountInWei) => {
-    return amountInWei/WEI_UNIT;
+    const amount = web3.utils.fromWei(amountInWei.toString(), 'ether');
+    return amount;
 }
 
 const convertEthToWei = (amountInEth) => {
-    return amountInEth * WEI_UNIT;
+    const amount = web3.utils.toWei(amountInEth, 'ether');
+    return parseInt(amount);
 }
 
 export const createEthWallet = () => {
     // Random Entropy as parameter
     const account = web3.eth.accounts.create('a41ead7a8989cab21971f1a2b3471a8f3099bad4aa3d63754b45d69f82f57332..////!!!!!!dhgdcg');
-    console.log(account);
 
     return account;
-
 }
 
 export const getEthBalance = async (address) => {
@@ -32,6 +43,16 @@ export const getEthTransactionCount = async (address) => {
     // Gets the number of transactions sent from this address
     const nounce = await web3.eth.getTransactionCount(address);
     return nounce;
+}
+
+export const estimateEthTransactionGasLimit = async ({source_address, destination_address, value}) => {
+    const limit = await web3.eth.estimateGas({
+        from: source_address,
+        to: destination_address,
+        value: convertEthToWei(value)
+    });
+
+    return convertWeiToEth(parseInt(limit));
 }
 
 export const sendEthTransaction = async ({ sender_address, sender_private_key, destination_address, value }) => {

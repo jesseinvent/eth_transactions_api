@@ -1,4 +1,5 @@
-import { createEthWallet, getEthBalance, getEthTransaction, getEthTransactionCount, sendEthTransaction } from "../service/ethereum.js";
+import configs from "../config/config.js";
+import { createEthWallet, estimateEthTransactionGasLimit, getEthBalance, getEthTransaction, getEthTransactionCount, sendEthTransaction } from "../service/ethereum.js";
 
 export const createWallet = (req, res, next) => {
     const wallet = createEthWallet();
@@ -12,7 +13,20 @@ export const getBalance = async (req, res, next) => {
 
     const balance = await getEthBalance(address);
 
-    return res.send({ balance })
+    return res.send({ balance });
+}
+
+export const estimateGasLimit = async (req, res, next) => {
+    const { destination_address, value } = req.body;
+
+    const limit = await estimateEthTransactionGasLimit(
+        {
+            source_address: configs.ADDRESS,
+            destination_address: destination_address,
+            value
+        });
+
+    return res.send({ gas_limit: limit });
 }
 
 export const sendTransaction = async (req, res, next) => {
@@ -25,7 +39,7 @@ export const sendTransaction = async (req, res, next) => {
     
     const result = await sendEthTransaction(
         {
-            sender_address: process.env.ADDRESS,
+            sender_address: configs.ADDRESS,
             sender_private_key: process.env.PRIVATE_KEY,destination_address,
             value
         });
