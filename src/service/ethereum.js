@@ -20,14 +20,11 @@ const httpProvider = new Web3.providers.HttpProvider(
 const web3 = new Web3(wsProvider);
 
 export const listenForTransactions = () => {
-  web3.eth
-    .subscribe("logs", (error, result) => {
-      if (!error) console.log("Listening for Transactions", result);
-      console.log(error);
-    })
-    .on("data", (transaction) => {
-      console.log(transaction);
-    });
+  web3.eth.subscribe("pendingTransactions").on("data", async (txHash) => {
+    console.log({ txHash });
+    const transaction = await getEthTransaction(txHash);
+    console.log({ transaction });
+  });
 };
 
 const convertWeiToEth = (amountInWei) => {
@@ -41,10 +38,10 @@ const convertEthToWei = (amountInEth) => {
 };
 
 export const convertGWeiToEth = (amountInGwei) => {
-    const amountInWei = web3.utils.toWei(amountInGwei.toString(), 'Gwei');
-    const amountInEth = convertWeiToEth(amountInWei);
-    return amountInEth;
-}
+  const amountInWei = web3.utils.toWei(amountInGwei.toString(), "Gwei");
+  const amountInEth = convertWeiToEth(amountInWei);
+  return amountInEth;
+};
 
 export const createEthWallet = () => {
   // Random Entropy as parameter
@@ -141,8 +138,6 @@ export const sendEthTransaction = async ({
 
 export const getEthTransaction = async (hash) => {
   const transaction = await web3.eth.getTransaction(hash);
-
-  console.log(hash);
 
   return transaction;
 };
