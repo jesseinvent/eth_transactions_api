@@ -3,7 +3,6 @@ import { convertGWeiToEth, createEthWallet, estimateEthTransactionGasFee, getEth
 
 export const createWallet = (req, res, next) => {
     const wallet = createEthWallet();
-
     res.send({ wallet });
 }
 
