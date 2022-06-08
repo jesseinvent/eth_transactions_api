@@ -9,10 +9,9 @@ import {
 } from "../service/ethereum.js";
 
 export const createWallet = (req, res, next) => {
-  const wallet = createEthWallet();
-
-  res.send({ wallet });
-};
+    const wallet = createEthWallet();
+    res.send({ wallet });
+}
 
 export const getBalance = async (req, res, next) => {
   const { address } = req.params;
