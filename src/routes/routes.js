@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { createWallet, estimateGasLimit, getBalance, getTransaction, getTransactionCount, sendTransaction } from "../controllers/ethereumControllers.js";
+import { createWallet, estimateGasFee, getBalance, getTransaction, getTransactionCount, sendTransaction } from "../controllers/ethereumControllers.js";
 
 const router = Router();
 
@@ -9,7 +9,7 @@ router.get('/get-balance/:address', getBalance);
 
 router.get('/get-transaction-count/:address', getTransactionCount);
 
-router.post('/get-gas-limit', estimateGasLimit);
+router.post('/get-gas-fee', estimateGasFee);
 
 router.post('/send-transaction', sendTransaction);
 

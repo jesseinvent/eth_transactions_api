@@ -15,14 +15,20 @@ const httpProvider = new Web3.providers.HttpProvider(`https://${ETHEREUM_NETWORK
 
 const web3 = new Web3(wsProvider);
 
-const convertWeiToEth = (amountInWei) => {
+export const convertWeiToEth = (amountInWei) => {
     const amount = web3.utils.fromWei(amountInWei.toString(), 'ether');
     return amount;
 }
 
-const convertEthToWei = (amountInEth) => {
+export const convertEthToWei = (amountInEth) => {
     const amount = web3.utils.toWei(amountInEth, 'ether');
     return parseInt(amount);
+}
+
+export const convertGWeiToEth = (amountInGwei) => {
+    const amountInWei = web3.utils.toWei(amountInGwei.toString(), 'Gwei');
+    const amountInEth = convertWeiToEth(amountInWei);
+    return amountInEth;
 }
 
 export const createEthWallet = () => {
@@ -45,14 +51,16 @@ export const getEthTransactionCount = async (address) => {
     return nounce;
 }
 
-export const estimateEthTransactionGasLimit = async ({source_address, destination_address, value}) => {
-    const limit = await web3.eth.estimateGas({
+export const estimateEthTransactionGasFee = async ({source_address, destination_address, value}) => {
+    const units = await web3.eth.estimateGas({
         from: source_address,
         to: destination_address,
         value: convertEthToWei(value)
     });
 
-    return convertWeiToEth(parseInt(limit));
+    const gasFees = units * 20;
+
+    return gasFees;
 }
 
 export const sendEthTransaction = async ({ sender_address, sender_private_key, destination_address, value }) => {
@@ -79,7 +87,8 @@ export const sendEthTransaction = async ({ sender_address, sender_private_key, d
         from: sender_address,  // Optional can be derived from PRIVATE KEY
         to: destination_address,
         value: convertEthToWei(value),
-        gas: 30000,
+        // gasPrice: 
+        gas: 21000,
         nounce
     }
 

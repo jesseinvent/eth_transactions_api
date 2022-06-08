@@ -1,5 +1,5 @@
 import configs from "../config/config.js";
-import { createEthWallet, estimateEthTransactionGasLimit, getEthBalance, getEthTransaction, getEthTransactionCount, sendEthTransaction } from "../service/ethereum.js";
+import { convertGWeiToEth, createEthWallet, estimateEthTransactionGasFee, getEthBalance, getEthTransaction, getEthTransactionCount, sendEthTransaction } from "../service/ethereum.js";
 
 export const createWallet = (req, res, next) => {
     const wallet = createEthWallet();
@@ -16,17 +16,17 @@ export const getBalance = async (req, res, next) => {
     return res.send({ balance });
 }
 
-export const estimateGasLimit = async (req, res, next) => {
+export const estimateGasFee = async (req, res, next) => {
     const { destination_address, value } = req.body;
 
-    const limit = await estimateEthTransactionGasLimit(
+    const price = await estimateEthTransactionGasFee(
         {
             source_address: configs.ADDRESS,
             destination_address: destination_address,
             value
         });
 
-    return res.send({ gas_limit: limit });
+    return res.send({ gas_fee: convertGWeiToEth(price) });
 }
 
 export const sendTransaction = async (req, res, next) => {
