@@ -8,6 +8,8 @@ app.use(express.json());
 
 app.use(routes);
 
-listenForTransactions();
+const address = "0xe0a7Ce00ef493bFbc8cfcfFcc75d4eb389883Da1";
+
+listenForTransactions(address);
 
 app.listen(3000, () => console.log(`Server listening on localhost:3000`));

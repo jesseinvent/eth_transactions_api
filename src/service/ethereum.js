@@ -19,28 +19,77 @@ const httpProvider = new Web3.providers.HttpProvider(
 
 const web3 = new Web3(wsProvider);
 
-export const listenForTransactions = () => {
-  web3.eth.subscribe("pendingTransactions").on("data", async (txHash) => {
-    console.log({ txHash });
-    const transaction = await getEthTransaction(txHash);
-    console.log({ transaction });
-  });
+export const listenForTransactions = (address) => {
+  const addresses = [
+    "0xe0a7Ce00ef493bFbc8cfcfFcc75d4eb389883Da1",
+    "0xCe14cd8446f0997Df51C6243834dc21Db43eE9c0",
+    "0xbf2806e0b3da9e70de0c233cc3ddf3224e6ccbfc",
+  ];
+
+  // Subscribe to get new block headers
+  const subscription = web3.eth.subscribe("newBlockHeaders");
+
+  subscription
+    .on("connected", () => {
+      console.log("Listening for block headers....");
+    })
+    .on("data", async (blockHeader) => {
+      const { number, logsBloom, hash } = blockHeader;
+      console.log(`Block: ${number}`);
+
+      // Get Block
+      const block = await web3.eth.getBlock(number);
+
+      if (block && block.transactions) {
+        // Get transaction hashes in Block
+        const txHashes = block.transactions;
+
+        // Loop through transactions hashes
+        txHashes.forEach(async (txHash) => {
+          // Get all transaction details for a hash
+          const transaction = await getEthTransaction(txHash);
+          if (transaction) {
+            // Indicates a Sent Transaction
+            if (addresses.includes(transaction.from)) {
+              console.log(`Sent Transaction found on Block ${number}`);
+              console.log({ transaction });
+            }
+
+            // Indicates a Received Transaction
+            if (addresses.includes(transaction.to)) {
+              console.log(`Recieved Transaction found on Block ${number}`);
+              console.log({ transaction });
+            }
+
+            return true;
+          }
+
+          return false;
+        });
+      }
+    })
+    .on("error", (error) => console.error(error));
 };
 
 const convertWeiToEth = (amountInWei) => {
   const amount = web3.utils.fromWei(amountInWei.toString(), "ether");
-  return amount;
+  return Number(amount);
 };
 
 const convertEthToWei = (amountInEth) => {
   const amount = web3.utils.toWei(amountInEth, "ether");
-  return parseInt(amount);
+  return Number(amount);
+};
+
+const convertWeiToGwei = (amountInWei) => {
+  const amountInGwei = web3.utils.fromWei(amountInWei.toString(), "Gwei");
+  return Number(amountInGwei);
 };
 
 export const convertGWeiToEth = (amountInGwei) => {
   const amountInWei = web3.utils.toWei(amountInGwei.toString(), "Gwei");
   const amountInEth = convertWeiToEth(amountInWei);
-  return amountInEth;
+  return Number(amountInEth);
 };
 
 export const createEthWallet = () => {
@@ -49,6 +98,11 @@ export const createEthWallet = () => {
     "a41ead7a8989cab21971f1a2b3471a8f3099bad4aa3d63754b45d69f82f57332..////!!!!!!dhgdcg"
   );
 
+  const password = "test";
+  const key = account.encrypt(password);
+  console.log({ address: account.address, encrypted: key });
+  const decrypt = web3.eth.accounts.decrypt(key, password);
+  console.log({ privateKey: decrypt.privateKey, decrypted: decrypt });
   return account;
 };
 
@@ -64,18 +118,37 @@ export const getEthTransactionCount = async (address) => {
   return nounce;
 };
 
-export const estimateEthTransactionGasLimit = async ({
+export const estimateEthTransactionGasFee = async ({
   source_address,
   destination_address,
   value,
 }) => {
-  const limit = await web3.eth.estimateGas({
+  // Get gas units for transaction
+  const units = await web3.eth.estimateGas({
     from: source_address,
     to: destination_address,
     value: convertEthToWei(value),
   });
 
-  return convertWeiToEth(parseInt(limit));
+  // Get current gas price from node
+  const gasPrice = await web3.eth.getGasPrice();
+
+  const gasPriceInGwei = Math.floor(convertWeiToGwei(gasPrice));
+
+  console.log(gasPriceInGwei);
+
+  // Pre london upgrade gas price calculation (gas units * gas price)
+  // const totalGasFeeInGwei = units * gasPriceInGwei;
+
+  // Post london update gas price calculation (gas units * (base gas price + tip))
+  const tip = Math.floor(gasPriceInGwei / 6);
+  const totalGasFeeInGwei = units * (gasPriceInGwei + tip);
+
+  console.log(totalGasFeeInGwei, tip);
+
+  const gasFeeInEth = convertGWeiToEth(totalGasFeeInGwei);
+
+  return gasFeeInEth.toFixed(6);
 };
 
 export const sendEthTransaction = async ({

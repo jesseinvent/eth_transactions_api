@@ -1,7 +1,7 @@
 import configs from "../config/config.js";
 import {
   createEthWallet,
-  estimateEthTransactionGasLimit,
+  estimateEthTransactionGasFee,
   getEthBalance,
   getEthTransaction,
   getEthTransactionCount,
@@ -24,7 +24,7 @@ export const getBalance = async (req, res, next) => {
 export const estimateGasFee = async (req, res, next) => {
   const { destination_address, value } = req.body;
 
-  const limit = await estimateEthTransactionGasLimit({
+  const limit = await estimateEthTransactionGasFee({
     source_address: configs.ADDRESS,
     destination_address: destination_address,
     value,
